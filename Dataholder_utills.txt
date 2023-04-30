@@ -1,0 +1,7 @@
+package pk.edu.iqra.app1.utils
+
+import pk.edu.iqra.app1.models.NewUser
+
+object DataHolder {
+    lateinit var user:NewUser
+}

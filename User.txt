@@ -1,0 +1,3 @@
+package pk.edu.iqra.app1.models
+
+data class User(val email:String, val password:String):java.io.Serializable

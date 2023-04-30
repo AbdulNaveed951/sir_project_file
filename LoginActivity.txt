@@ -1,0 +1,145 @@
+package pk.edu.iqra.app1
+
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.os.PersistableBundle
+import android.view.View
+import android.widget.EditText
+import android.widget.Toast
+import com.google.gson.Gson
+import kotlinx.android.synthetic.main.activity_login.*
+import pk.edu.iqra.app1.models.NewUser
+import pk.edu.iqra.app1.models.User
+import pk.edu.iqra.app1.utils.DataHolder
+import pk.edu.iqra.app1.utils.PrefManager
+
+class LoginActivity : AppCompatActivity() {
+    private lateinit var prefManager: PrefManager
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
+
+        prefManager = PrefManager(this)
+
+        //val email = prefManager.getData("email")
+        //val password = prefManager.getData("password")
+
+        /*if(!email.contentEquals("0") && !password.contentEquals("0")){
+            //Redirect Home Screen
+            goToHomeScreen(email,password)
+        }*/
+
+        val userStr = prefManager.getData("user")
+        if(!userStr.contentEquals("0")){
+            val gson = Gson();
+            val user = gson.fromJson(userStr,NewUser::class.java)
+            //Redirect Home Screen
+            goToHomeScreen(user.email,user.password)
+        }
+
+        val isError = savedInstanceState?.getBoolean("isError")?:false
+        if(isError){
+            txErrorMessage.visibility = View.VISIBLE
+            txErrorMessage.text = savedInstanceState?.getString("errorMessage")
+        }
+
+        btnSignIn.setOnClickListener {
+            val email = edEmail.text.toString().trim()
+            val password = edPassword.text.toString().trim()
+
+            hideError()
+
+            val emailRegex = Regex("^[\\w!#$%&amp;'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&amp;'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$");
+            if(email.isEmpty()){
+                //showErrorMessage("Please enter email address")
+                showError("Please enter email address")
+                return@setOnClickListener
+            }
+            else if(!emailRegex.matches(email)){
+                //showErrorMessage("Please enter valid email address")
+                showError("Please enter valid email address")
+                return@setOnClickListener
+            }
+            else if(password.isEmpty()){
+                //showErrorMessage("Please enter password")
+                showError("Please enter password")
+                return@setOnClickListener
+            }
+            else{
+                hideError()
+                //Data Passing Method # 01
+                /*Intent(this,HomeActivity::class.java).apply {
+                    putExtra("email",email)
+                    putExtra("password",password)
+                    startActivity(this)
+                }*/
+
+                //Data Passing Method # 02 - Serializable -> object convert byte stream
+                /*val user = User(email,password)
+                Intent(this,HomeActivity::class.java).apply {
+                    putExtra("user",user)
+                    startActivity(this)
+                }*/
+
+
+                //Data Passing Method # 03 - Parcelable -> object placed in parcel
+                /*val user = NewUser(email,password)
+                Intent(this,HomeActivity::class.java).apply {
+                    putExtra("user",user)
+                    startActivity(this)
+                }*/
+
+                //Data Passing Method # 04 - Data Holder (Global Data Provider)
+
+
+                //Save User Data in Preference
+                //prefManager.saveData("email",email)
+                //prefManager.saveData("password",password)
+
+                val user = NewUser(email,password)
+
+                val gson = Gson()
+                val userStr = gson.toJson(user)
+                prefManager.saveData("user",userStr)
+
+                DataHolder.user = user
+
+                goToHomeScreen(email,password)
+            }
+        }
+    }
+
+    private fun goToHomeScreen(email:String,password:String){
+        Intent(this,HomeActivity::class.java).apply {
+            startActivity(this)
+            finish()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        if(txErrorMessage.visibility == View.VISIBLE){
+            outState.putBoolean("isError",true)
+            outState.putString("errorMessage",txErrorMessage.text.toString())
+        }
+        else{
+            outState.putBoolean("isError",false)
+        }
+    }
+
+    private fun showErrorMessage(message:String){
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showError(message:String){
+        txErrorMessage.text = message
+        txErrorMessage.visibility = View.VISIBLE
+    }
+
+    private fun hideError(){
+        txErrorMessage.text = ""
+        txErrorMessage.visibility = View.GONE
+    }
+}

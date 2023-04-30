@@ -1,0 +1,21 @@
+package pk.edu.iqra.app1.utils
+
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
+
+class PrefManager(context:Context) {
+    private val sharedPreferences = context.getSharedPreferences("my_app_pref", MODE_PRIVATE)
+
+
+    fun getData(key:String):String{
+        return sharedPreferences.getString(key,"0")?:"0"
+    }
+
+    fun saveData(key:String, value:String){
+        sharedPreferences.edit().putString(key,value).apply()
+    }
+
+    fun clearData(){
+        sharedPreferences.edit().clear().apply()
+    }
+}
